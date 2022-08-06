@@ -7,7 +7,14 @@
     "build": "vue-cli-service build"
   },
   "dependencies": {
+    "bcrypt": "^5.0.1",
+    "body-parser": "^1.20.0",
     "core-js": "^3.8.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.1",
+    "express": "^4.18.1",
+    "jsonwebtoken": "^8.5.1",
+    "mysql": "^2.18.1",
     "register-service-worker": "^1.7.2",
     "vue": "^3.2.13",
     "vue-router": "^4.0.3",
@@ -18,6 +25,20 @@
     "@vue/cli-plugin-pwa": "~5.0.0",
     "@vue/cli-plugin-router": "~5.0.0",
     "@vue/cli-plugin-vuex": "~5.0.0",
-    "@vue/cli-service": "~5.0.0"
-  }
+    "@vue/cli-service": "~5.0.0",
+    "nodemon": "^2.0.19"
+  },
+  "description": "```\r npm install\r ```",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Clayton0205/nodemonend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Clayton0205/nodemonend/issues"
+  },
+  "homepage": "https://github.com/Clayton0205/nodemonend#readme"
 }
