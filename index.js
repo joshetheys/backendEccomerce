@@ -77,9 +77,9 @@ router.post('/login', bodyParser.json(), (req, res)=> {
             } else {
                 const payload = {
                     user: {
-                        fullname: results[0].fullname,
-                        email: results[0].email,
-                        userpassword: results[0].userpassword,
+                      fullname: results[0].fullname,
+                      email: results[0].email,
+                      userpassword: results[0].userpassword,
                       userRole: results[0].userRole,
                       phone_number: results[0].phone_number,
                       join_date: results[0].join_date,
@@ -98,8 +98,6 @@ router.post('/login', bodyParser.json(), (req, res)=> {
 })
 
 
-
-/* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
 // GET ALL USERS
 router.get('/users', (req, res)=> {
     // Query
@@ -118,7 +116,22 @@ router.get('/users', (req, res)=> {
     })
 });
 
-
+// GET ONE USER
+router.get('/users/:userId', (req, res)=> {
+    const strQry = 
+    `SELECT userId, fullname, email, userpassword, userRole, phone_number, join_date, cart
+    FROM users
+    WHERE userId = ?;
+    `;
+    db.query(strQry, [req.params.userId], (err, results) => {
+        if(err) throw err;
+        res.setHeader('Access-Control-Allow-Origin','*')
+        res.json({
+            status: 204,
+            results: (results.length < 1) ? "Sorry, no data was found." : results
+        })
+    })
+});
 
 
 // VERIFY USER
@@ -182,13 +195,13 @@ router.get('/products', (req, res)=> {
 router.get('/products/:productId', (req, res)=> {
     // Query
     const strQry = 
-    `
-    SELECT productId, title, category, description, img, price, createdby, quantity
+    `SELECT productId, title, category, description, img, price, createdby, quantity
     FROM products
     WHERE productId = ?;
     `;
     db.query(strQry, [req.params.productId], (err, results)=> {
         if(err) throw err;
+        res.setHeader('Access-Control-Allow-Origin','*')
         res.json({
             status: 200,
             results: (results.length <= 0) ? "Sorry, no product was found." : results
