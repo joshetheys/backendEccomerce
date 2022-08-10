@@ -42,12 +42,12 @@ router.post('/register', bodyParser.json(),(req, res)=>{
             // Query
             const strQry = 
             `
-            INSERT INTO users(firstname, lastname, gender, email, userpassword)
+            INSERT INTO users(fullname, email, userpassword, userRole, phone_number, join_date)
             VALUES(?, ?, ?, ?, ?);
             `;
             //
             db.query(strQry, 
-                [bd.firstname, bd.lastname, bd.gender, bd.email, bd.userpassword],
+                [bd.fullname, bd.email, bd.userpassword, bd.userRole, bd.phone_number, bd.join_date],
                 (err, results)=> {
                     if(err) throw err;
                     res.send(`number of affected row/s: ${results.affectedRows}`);
@@ -77,12 +77,12 @@ router.post('/login', bodyParser.json(), (req, res)=> {
             } else {
                 const payload = {
                     user: {
-                      firstname: results[0].firstname,
-                      lastname: results[0].lastname,
-                      gender: results[0].gender,
+                        fullname: results[0].fullname,
+                        email: results[0].email,
+                        userpassword: results[0].userpassword,
                       userRole: results[0].userRole,
-                      email: results[0].email,
-                      userpassword: results[0].userpassword,
+                      phone_number: results[0].phone_number,
+                      join_date: results[0].join_date,
                     },
                   };
 
@@ -105,7 +105,7 @@ router.get('/users', (req, res)=> {
     // Query
     const strQry = 
     `
-    SELECT id, firstname, lastname, gender, userRole, email
+    SELECT userId, fullname, email, userpassword, userRole, phone_number, join_date
     FROM users;
     `;
     db.query(strQry, (err, results)=> {
@@ -142,12 +142,12 @@ router.post('/products', bodyParser.json(), (req, res)=> {
     // Query
     const strQry = 
     `
-    INSERT INTO products(prodName, prodUrl, quantity, price, totalamount, category, stockDateImported)
+    INSERT INTO products(title, category, description, img, price, createdby, quantity)
     VALUES(?, ?, ?, ?, ?, ?, ?);
     `;
     //
     db.query(strQry, 
-        [bd.prodName, bd.prodUrl, bd.quantity, bd.price, bd.totalamount, bd.category, bd.stockDateImported],
+        [bd.title, bd.category, bd.description, bd.img, bd.price, bd.createdby, bd.quantity],
         (err, results)=> {
             if(err) throw err;
             res.status(201).send(`number of affected row/s: ${results.affectedRows}`);
@@ -163,7 +163,7 @@ router.get('/products', (req, res)=> {
     // Query
     const strQry = 
     `
-    SELECT id, prodName,prodUrl, quantity, price, totalamount, stockDateImported, userid
+    SELECT productId, title, category, description, img, price, createdby, quantity
     FROM products;
     `;
     db.query(strQry, (err, results)=> {
@@ -179,15 +179,15 @@ router.get('/products', (req, res)=> {
 
 
 // GET ONE PRODUCT
-router.get('/products/:id', (req, res)=> {
+router.get('/products/:productId', (req, res)=> {
     // Query
     const strQry = 
     `
-    SELECT id, prodName, prodUrl, quantity, price, totalamount, stockDateImported, userid
+    SELECT productId, title, category, description, img, price, createdby, quantity
     FROM products
-    WHERE id = ?;
+    WHERE productId = ?;
     `;
-    db.query(strQry, [req.params.id], (err, results)=> {
+    db.query(strQry, [req.params.productId], (err, results)=> {
         if(err) throw err;
         res.json({
             status: 200,
