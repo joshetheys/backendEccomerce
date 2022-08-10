@@ -213,15 +213,15 @@ router.get('/products/:productId', (req, res)=> {
 
 
 // UPDATE PRODUCT
-router.put('/products', bodyParser.json(), (req, res)=> {
+router.put('/products/:productId', bodyParser.json(), (req, res)=> {
     const bd = req.body;
     // Query
     const strQry = 
     `UPDATE products
      SET ?
-     WHERE id = ?`;
+     WHERE productId = ?`;
 
-    db.query(strQry,[bd.id], (err, data)=> {
+    db.query(strQry,[bd.productId], (err, data)=> {
         if(err) throw err;
         res.send(`number of affected record/s: ${data.affectedRows}`);
     })
@@ -232,14 +232,14 @@ router.put('/products', bodyParser.json(), (req, res)=> {
 
 
 // DELETE PRODUCT
-router.delete('/products/:id', (req, res)=> {
+router.delete('/products/:productId', (req, res)=> {
     // Query
     const strQry = 
     `
     DELETE FROM products 
-    WHERE id = ?;
+    WHERE productId = ?;
     `;
-    db.query(strQry,[req.params.id], (err, data, fields)=> {
+    db.query(strQry,[req.params.productId], (err, data, fields)=> {
         if(err) throw err;
         res.send(`${data.affectedRows} row was affected`);
     })
