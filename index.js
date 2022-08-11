@@ -200,12 +200,12 @@ router.post('/products', bodyParser.json(), (req, res)=> {
     // Query
     const strQry = 
     `
-    INSERT INTO products(title, category, description, img, price, createdby, quantity)
+    INSERT INTO products(title, category, description, image, price, created_by, quantity)
     VALUES(?, ?, ?, ?, ?, ?, ?);
     `;
     //
     db.query(strQry, 
-        [bd.title, bd.category, bd.description, bd.img, bd.price, bd.createdby, bd.quantity],
+        [bd.title, bd.category, bd.description, bd.image, bd.price, bd.created_by, bd.quantity],
         (err, results)=> {
             if(err) throw err;
             res.status(201).send(`number of affected row/s: ${results.affectedRows}`);
@@ -221,7 +221,7 @@ router.get('/products', (req, res)=> {
     // Query
     const strQry = 
     `
-    SELECT productId, title, category, description, img, price, createdby, quantity
+    SELECT product_id, title, category, description, image, price, created_by, quantity
     FROM products; 
     `;
     db.query(strQry, (err, results)=> {
@@ -237,14 +237,14 @@ router.get('/products', (req, res)=> {
 
 
 // GET ONE PRODUCT
-router.get('/products/:productId', (req, res)=> {
+router.get('/products/:product_id', (req, res)=> {
     // Query
     const strQry = 
-    `SELECT productId, title, category, description, img, price, createdby, quantity
+    `SELECT product_id, title, category, description, image, price, created_by, quantity
     FROM products
-    WHERE productId = ?;
+    WHERE product_id = ?;
     `;
-    db.query(strQry, [req.params.productId], (err, results)=> {
+    db.query(strQry, [req.params.product_id], (err, results)=> {
         if(err) throw err;
         res.setHeader('Access-Control-Allow-Origin','*')
         res.json({
@@ -258,49 +258,75 @@ router.get('/products/:productId', (req, res)=> {
 
 
 // UPDATE PRODUCT
-router.put('/products/:productId', bodyParser.json(), (req, res)=> {
+router.put('/products/:product_id', bodyParser.json(), (req, res)=> {
     const bd = req.body;
     // Query
     const strQry = 
     `UPDATE products
      SET ?
-     WHERE productId = ?`;
+     WHERE product_id = ?`;
 
-     db.query(strQry, [bd, req.params.productId], (err)=> {
+     db.query(strQry, [bd, req.params.product_id], (err)=> {
         if(err) throw err;
         res.send(`number of affected record/s: ${data.affectedRows}`);
     })
 });
 
 
-// router.put('/products/:productId', bodyParser.json(), (req, res)=> {
-//     const bd = req.body;
-//     const strQry = 
-//     `
-//     UPDATE products
-//     SET ?
-//     WHERE productId = ?
-//     `;
-//     db.query(strQry, [bd, req.params.productId], (err)=> {
-//         if(err) throw err;
-//         res.status(200).json({msg: "A product was modified."});
-//     })
-// });
-
 
 // DELETE PRODUCT
-router.delete('/products/:productId', (req, res)=> {
+router.delete('/products/:product_id', (req, res)=> {
     // Query
     const strQry = 
     `
     DELETE FROM products 
-    WHERE productId = ?;
+    WHERE product_id = ?;
     `;
-    db.query(strQry,[req.params.productId], (err, data, fields)=> {
+    db.query(strQry,[req.params.product_id], (err, data, fields)=> {
         if(err) throw err;
         res.send(`${data.affectedRows} row was affected`);
     })
 });
+
+
+//CART
+// USER'S CART
+router.get('/users/:userId/cart', (req, res)=> {
+    const strQry = 
+    `
+    SELECT cart
+    FROM users
+    WHERE userId = ?;
+    `;
+    db.query(strQry,[req.params.userId], (err, results)=> {
+        if(err) throw err;
+        res.status(200).json(
+            {results: (results.length < 1) ? "Sorry, no cart is available." : results});
+    })
+});
+// ADD TO CART 
+router.post('/users/:userId/cart', (req, res)=> {
+    /*
+        INSERT INTO foo_table (id, foo_ids, name) VALUES (
+            1,
+            JSON_ARRAY_APPEND(
+                '[]',
+                '$',
+                CAST('{"id": "432"}' AS JSON),
+                '$',
+                CAST('{"id": "433"}' AS JSON)
+            ),
+            'jumbo burger'
+        );
+    */
+    const strQry = 
+    `UPDATE users
+     WHERE userId = ?`; 
+    db.query(strQry,[req.params.cart, req.params.userId], (err, results)=> {
+        if(err) throw err;
+        res.status(200).json({results: results});
+    })
+})
 /*
 res.status(200).json({
     status: 200,
