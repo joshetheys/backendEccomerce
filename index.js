@@ -4,8 +4,13 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const db = require('./config/dbconn');
-const {compare, genSalt, hash} = require('bcrypt');
+const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
+
+// Middlewares
+// const {createToken, verifyAToken} = require('./middleware/AuthenticateUser');
+// const {errorHandling} = require('./middleware/ErrorHandling');
+const cookieParser = require('cookie-parser');
 // Express app
 const app = express();
 app.use(express.static('views'))
@@ -13,13 +18,12 @@ app.use((req, res, next)=>{
     res.setHeader('Access-Control-Allow-Origin', '*');
     next();
 });
-
 // Express router
 const router = express.Router();
 
 // Configuration 
 const port = parseInt(process.env.PORT) || 4000;
-app.use(router, cors(), express.json(), bodyParser.urlencoded({ extended: true }));
+app.use(router, cors(), express.json(), cookieParser(),  bodyParser.urlencoded({ extended: true }));
 app.listen(port, ()=> {console.log(`Server is running on port ${port}`)});
 
 
@@ -33,17 +37,30 @@ router.post('/register', bodyParser.json(),(req, res)=>{
         if(err) throw err
         // VALIDATION
         if (results.length > 0) {
-            res.send("The provided email exists. Please enter another one");
+            res.send("The email provided is already registered. Enter another email to successfully register");
             
         } else {
             const bd = req.body;
-            let generateSalt = await genSalt();
-            bd.userpassword = await hash(bd.userpassword, generateSalt);
+             // hash(bd.userpassword, 10).then((hash) => {
+                //set the password to hash value
+        //         (err, result) => {
+        //   if (err){
+        //    return res.status(400).send({msg: err})
+
+        //   }
+        //   return res.status(201).send({msg: "hash successful"})
+        //  }
+        //         bd.userpassword = hash
+        //       })
+            let generateSalt = await bcrypt.genSalt();
+            bd.userpassword = await bcrypt.hash(bd.userpassword, generateSalt);
+            console.log(bd);
+           
             // Query
             const strQry = 
             `
             INSERT INTO users(fullname, email, userpassword, userRole, phone_number, join_date)
-            VALUES(?, ?, ?, ?, ?);
+            VALUES(?, ?, ?, ?, ?, ?);
             `;
             //
             db.query(strQry, 
@@ -71,7 +88,7 @@ router.post('/login', bodyParser.json(), (req, res)=> {
         if (results.length === 0) {
             res.send('Email not found. Please register')
         } else {
-            const isMatch = await compare(req.body.userpassword, results[0].userpassword);
+            const isMatch = await bcrypt.compare(req.body.userpassword, results[0].userpassword);
             if (!isMatch) {
                 res.send('Password is Incorrect')
             } else {
@@ -86,7 +103,7 @@ router.post('/login', bodyParser.json(), (req, res)=> {
                     },
                   };
 
-                jwt.sign(payload,process.env.jwtSecret,{expiresIn: "365d"},(err, token) => {
+                jwt.sign(payload,process.env.SECRET_KEY,{expiresIn: "365d"},(err, token) => {
                     if (err) throw err;
                     res.send(token)
                   }
@@ -147,7 +164,35 @@ router.get("/users/verify", (req, res) => {
     });
   });
 
+// Delete a user 
+router.delete('/users/:userId', (req, res)=> {
+    const strQry = 
+    `
+    DELETE FROM users 
+    WHERE userId = ?;
+    `;
+    db.query(strQry,[req.params.userId], (err)=> {
+        if(err) throw err;
+        res.status(200).json({msg: "A user was deleted."});
+    })
+});
 
+
+// Updating user
+router.put('/users/:userId', bodyParser.json(), (req, res)=> {
+    const bd = req.body;
+    if(bd.userpassword !== null || bd.userpassword !== undefined){
+        bd.userpassword = bcrypt.hashSync(bd.userpassword, 10);
+    }
+    const strQry = 
+    `UPDATE users
+     SET ?
+     WHERE userId = ?`;
+    db.query(strQry,[bd, req.params.userId], (err)=> {
+        if(err) throw err;
+        res.send(`number of affected record/s: ${data.affectedRows}`);
+    })
+});
 // CREATE PRODUCT
 router.post('/products', bodyParser.json(), (req, res)=> {
     const bd = req.body; 
@@ -177,7 +222,7 @@ router.get('/products', (req, res)=> {
     const strQry = 
     `
     SELECT productId, title, category, description, img, price, createdby, quantity
-    FROM products;
+    FROM products; 
     `;
     db.query(strQry, (err, results)=> {
         if(err) throw err;
@@ -221,14 +266,26 @@ router.put('/products/:productId', bodyParser.json(), (req, res)=> {
      SET ?
      WHERE productId = ?`;
 
-    db.query(strQry,[bd.productId], (err, data)=> {
+     db.query(strQry, [bd, req.params.productId], (err)=> {
         if(err) throw err;
         res.send(`number of affected record/s: ${data.affectedRows}`);
     })
 });
 
 
-
+// router.put('/products/:productId', bodyParser.json(), (req, res)=> {
+//     const bd = req.body;
+//     const strQry = 
+//     `
+//     UPDATE products
+//     SET ?
+//     WHERE productId = ?
+//     `;
+//     db.query(strQry, [bd, req.params.productId], (err)=> {
+//         if(err) throw err;
+//         res.status(200).json({msg: "A product was modified."});
+//     })
+// });
 
 
 // DELETE PRODUCT
@@ -252,6 +309,6 @@ res.status(200).json({
 */
  
 
-app.get('/product', (req, res)=>{
-    res.sendFile(__dirname + "/views/products.html")
-})
+// app.get('/product', (req, res)=>{
+//     res.sendFile(__dirname + "/views/products.html")
+// })
