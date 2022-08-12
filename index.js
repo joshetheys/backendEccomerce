@@ -6,10 +6,6 @@ const cors = require('cors');
 const db = require('./config/dbconn');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-
-// Middlewares
-// const {createToken, verifyAToken} = require('./middleware/AuthenticateUser');
-// const {errorHandling} = require('./middleware/ErrorHandling');
 const cookieParser = require('cookie-parser');
 // Express app
 const app = express();
@@ -135,6 +131,7 @@ router.get('/users', (req, res)=> {
 
 // GET ONE USER
 router.get('/users/:userId', (req, res)=> {
+     // Query
     const strQry = 
     `SELECT userId, fullname, email, userpassword, userRole, phone_number, join_date, cart
     FROM users
@@ -290,51 +287,100 @@ router.delete('/products/:product_id', (req, res)=> {
 
 
 //CART
-// USER'S CART
+//GET USER'S CART
 router.get('/users/:userId/cart', (req, res)=> {
+//  Query
+const strQry =
+`
+SELECT * FROM users
+WHERE userID = ?;
+`;
+db.query(strQry,[req.params.userId], (err, data, fields)=> {
+    if(err) throw err;
+    res.send(data[0].cart);
+})
+} 
+);
+// ADD TO CART
+router.post('/users/:userId/cart',bodyParser.json(), (req, res)=> {
+    //  Query
+    const strQry =
+    `SELECT * FROM users
+     WHERE userID = ?;
+    `;
+    db.query(strQry,[req.params.userId], (err, data, fields)=> {
+        if(err) throw err;
+        let stan = [];
+        if (data[0].cart != null) {
+            stan = JSON.parse(data[0].cart)
+        }
+        const prod = {
+            product_id: stan.length+1,
+            title: "BLACKPINK - Official Lightstick (Ver. 2)",
+            category: "Lightstick",
+            description: "BLACKPINK - Official Lightstick (Ver. 2) Limited Edition",
+            image: "https://i.postimg.cc/MZcvSmfz/yg-select-pre-order-blackpink-official-light-stick-ver-2-limited-edition-16793113493584-800x-08d94bc.jpg",
+            price: 1200,
+            quantity: 100
+        }
+        stan.push(prod)
+        // res.send(stan);
+        // Query
+        const put =
+        `
+        UPDATE users SET cart = ?
+        WHERE userId = ?;
+        `;
+        db.query(put, [JSON.stringify(stan), req.params.userId], (err, data, fields)=> {
+            if(err) throw err;
+            res.send(data);
+        })
+    })
+
+    } 
+    ); 
+
+// DELETE WHOLE CART
+router.delete('/users/:userId/cart',bodyParser.json(), (req, res)=> {
+    // Query
     const strQry = 
     `
-    SELECT cart
-    FROM users
-    WHERE userId = ?;
-    `;
-    db.query(strQry,[req.params.userId], (err, results)=> {
+        UPDATE users SET cart = null
+        WHERE userId = ?;
+        `;
+    db.query(strQry,[req.params.userId], (err, data, fields)=> {
         if(err) throw err;
-        res.status(200).json(
-            {results: (results.length < 1) ? "Sorry, no cart is available." : results});
+        res.send(`${data.affectedRows} rows were affected`);
     })
 });
-// ADD TO CART 
-router.post('/users/:userId/cart', (req, res)=> {
-    /*
-        INSERT INTO foo_table (id, foo_ids, name) VALUES (
-            1,
-            JSON_ARRAY_APPEND(
-                '[]',
-                '$',
-                CAST('{"id": "432"}' AS JSON),
-                '$',
-                CAST('{"id": "433"}' AS JSON)
-            ),
-            'jumbo burger'
-        );
-    */
-    const strQry = 
-    `UPDATE users
-     WHERE userId = ?`; 
-    db.query(strQry,[req.params.cart, req.params.userId], (err, results)=> {
+// DELETE SPECIFIC ITEM CART
+router.delete('/users/:userId/cart/:product_id',bodyParser.json(), (req, res)=> {
+    // Query
+    const deleteProd = 
+    `
+        SELECT cart FROM users 
+        WHERE userId =${req.params.userId};
+        `;
+    db.query(deleteProd,[req.params.userId], (err, data, fields)=> {
         if(err) throw err;
-        res.status(200).json({results: results});
+        const deleted = JSON.parse(data[0].cart).filter((cart)=>{
+            return cart.product_id != req.params.product_id;
+        })
+        deleted.forEach((cart, i)=> {
+            cart.product_id = i + 1
+        });
+        const end =
+        `
+        UPDATE users SET cart = ?
+        WHERE userId = ${req.params.userId}
+        `
+        db.query(end, [JSON.stringify(deleted)], (err,results)=>{
+            if(err) throw err;
+            res.send(`${data.affectedRows} rows were affected`);
+        })
+        
     })
-})
-/*
-res.status(200).json({
-    status: 200,
-    results: results
-})
-*/
+});
+ 
  
 
-// app.get('/product', (req, res)=>{
-//     res.sendFile(__dirname + "/views/products.html")
-// })
