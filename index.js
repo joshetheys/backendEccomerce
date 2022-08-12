@@ -10,8 +10,10 @@ const cookieParser = require('cookie-parser');
 // Express app
 const app = express();
 app.use(express.static('views'))
+// Set header
 app.use((req, res, next)=>{
-    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader("Access-Control-Allow-Origin", "*");
+    res.setHeader("Access-Control-Allow-Headers", "*");
     next();
 });
 // Express router
@@ -382,5 +384,11 @@ router.delete('/users/:userId/cart/:product_id',bodyParser.json(), (req, res)=> 
     })
 });
  
+module.exports = {
+    devServer: {
+        Proxy: '*'
+    }
+}
+
  
 
