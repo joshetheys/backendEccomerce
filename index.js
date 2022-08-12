@@ -180,14 +180,14 @@ router.delete('/users/:userId', (req, res)=> {
 // Updating user
 router.put('/users/:userId', bodyParser.json(), (req, res)=> {
     const bd = req.body;
-    if(bd.userpassword !== null || bd.userpassword !== undefined){
+    if(bd.userpassword !== null || bd.userpassword !== undefined){c
         bd.userpassword = bcrypt.hashSync(bd.userpassword, 10);
     }
     const strQry = 
     `UPDATE users
      SET ?
      WHERE userId = ?`;
-    db.query(strQry,[bd, req.params.userId], (err)=> {
+    db.query(strQry,[bd, req.params.userId], (err, data)=> {
         if(err) throw err;
         res.send(`number of affected record/s: ${data.affectedRows}`);
     })
@@ -265,7 +265,7 @@ router.put('/products/:product_id', bodyParser.json(), (req, res)=> {
      SET ?
      WHERE product_id = ?`;
 
-     db.query(strQry, [bd, req.params.product_id], (err)=> {
+     db.query(strQry, [bd, req.params.product_id], (err, data)=> {
         if(err) throw err;
         res.send(`number of affected record/s: ${data.affectedRows}`);
     })
