@@ -166,8 +166,7 @@ router.delete('/users/:userId', (req, res)=> {
 // Updating user
 router.put('/users/:userId', bodyParser.json(), (req, res)=> {
     const bd = req.body;
-    if(bd.userpassword !== null || bd.userpassword !== undefined){c
-        bd.userpassword = bcrypt.hashSync(bd.userpassword, 10);
+    if(bd.userpassword !== null || bd.userpassword !== undefined){ bd.userpassword = bcrypt.hashSync(bd.userpassword, 10);
     }
     const strQry = 
     `UPDATE users
