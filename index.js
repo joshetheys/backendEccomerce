@@ -25,15 +25,15 @@ app.use(router, cors(), express.json(), cookieParser(),  bodyParser.urlencoded({
 app.listen(port, ()=> {console.log(`Server is running on port ${port}`)});
 
 
-// REGISTER
-router.post('/register', bodyParser.json(),(req, res)=>{
+// REGISTER USERS
+router.post('/users/register', bodyParser.json(),(req, res)=>{
     let emails = `SELECT email FROM users WHERE ?`;
     let email = {
         email: req.body.email
     }
     db.query(emails, email, async(err, results)=>{
         if(err) throw err
-        // VALIDATION
+        // VALIDATION OF USER
         if (results.length > 0) {
             res.send("The email provided is already registered. Enter another email to successfully register");
             
@@ -74,7 +74,7 @@ router.post('/register', bodyParser.json(),(req, res)=>{
 
 
 // LOGIN
-router.post('/login', bodyParser.json(), (req, res)=> {
+router.patch('/users/login', bodyParser.json(), (req, res)=> {
     const strQry = `SELECT * FROM users WHERE ? ;`;
     let user = {
         email: req.body.email
@@ -84,11 +84,11 @@ router.post('/login', bodyParser.json(), (req, res)=> {
         if (err) throw err;
 
         if (results.length === 0) {
-            res.send('Email not found. Please register')
+            res.send('The email entered is not registered in our system. Please try to register.')
         } else {
             const isMatch = await bcrypt.compare(req.body.userpassword, results[0].userpassword);
             if (!isMatch) {
-                res.send('Password is Incorrect')
+                res.send('The password entered is incorrect.')
             } else {
                 const payload = {
                     user: {
@@ -144,24 +144,10 @@ router.get('/users/:userId', (req, res)=> {
         res.setHeader('Access-Control-Allow-Origin','*')
         res.json({
             status: 204,
-            results: (results.length < 1) ? "Sorry, no data was found." : results
+            results: (results.length < 1) ? "Unfortuanately there was no data found for the user id." : results
         })
     })
 });
-
-
-// VERIFY USER
-router.get("/users/verify", (req, res) => {
-    const token = req.header("x-auth-token");
-
-    jwt.verify(token, process.env.jwtSecret, (error, decodedToken) => {
-      if (error) {
-        res.status(401).send("Unauthorized Access!");
-      } else {
-        res.status(200).send(decodedToken);
-      }
-    });
-  });
 
 // Delete a user 
 router.delete('/users/:userId', (req, res)=> {
@@ -172,7 +158,7 @@ router.delete('/users/:userId', (req, res)=> {
     `;
     db.query(strQry,[req.params.userId], (err)=> {
         if(err) throw err;
-        res.status(200).json({msg: "A user was deleted."});
+        res.status(200).json({msg: "You have deleted the user."});
     })
 });
 
