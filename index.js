@@ -16,6 +16,14 @@ app.use((req, res, next)=>{
     res.setHeader("Access-Control-Allow-Headers", "*");
     next();
 });
+app.use(cors({
+    origin: ['http://127.0.0.1:8080', 'http://localhost:8080'],
+    credentials: true
+ }));
+// credentials will allow you to access the cookie on your fetch(url, 
+{
+credentials: 'include'
+}
 // Express router
 const router = express.Router();
 
